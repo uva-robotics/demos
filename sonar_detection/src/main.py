@@ -7,19 +7,28 @@ from sensor_msgs.msg import Range
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 
+
+emergency_stop = False
+RANGE = 0.75
+
+def speech():
+    publisher_speech.publish("Pardon me, could you please move aside?")
+
 def sonar_front(data):
-    print(data.range)
-    if data.range < 0.0:
-        publisher_velocity.publish("linear: \
-        x: 0.0 \
-        y: 0.0 \
-        z: 0.0 \
-        angular: \
-        x:0.0 \
-        y:0.0 \
-        z:0.0")
-        publisher_speech.publish("Pardon me, could you please move aside?")
-    time.sleep(3)
+    global emergency_stop
+    if data.range < RANGE and emergency_stop is False:
+        twist_msg = Twist()
+        twist_msg.linear.x = 0
+        twist_msg.linear.y= 0
+        twist_msg.linear.z = 0
+        twist_msg.angular.x = 0
+        twist_msg.angular.y= 0
+        twist_msg.angular.z = 0
+
+        print("EMERGENCY STOP", data.range)
+        publisher_velocity.publish(twist_msg)
+        speech()
+        emergency_stop = True
 
 # def sonar_back(data):
 #     print(data.range)
